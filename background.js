@@ -82,6 +82,15 @@ async function setBoxAttrs(id, icon, name, exec) {
     });
 }
 
+async function delBox(id) {
+    return new Promise((resolve, reject) => {
+        cb = reply => {
+            resolve(reply);
+        };
+        port.postMessage("box:del " + id);
+    });
+}
+
 browser.runtime.onMessage.addListener(msg => {
     switch (msg.type) {
         case "i:ls":
@@ -94,6 +103,8 @@ browser.runtime.onMessage.addListener(msg => {
             return getBoxAttrs(...msg.args);
         case "box:attrs set":
             return setBoxAttrs(...msg.args);
+        case "box:del":
+            return delBox(...msg.args);
         case "exec":
             return startBox(...msg.args);
         case "whoami":

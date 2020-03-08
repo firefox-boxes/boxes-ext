@@ -14,33 +14,44 @@ function setupContextMenu() {
         });
         let contextMenu = document.getElementById("context-menu");
         let __edit = document.querySelector(".context-menu__item[data-action=edit]");
-        __edit.addEventListener("click", e => {
+        __edit.addEventListener("click", async e => {
             let context = contextMenu.getAttribute("data-context");
-            browser.runtime.sendMessage({
+            let attrs = await browser.runtime.sendMessage({
                 type: "box:attrs get",
                 args: [context]
-            }).then(attrs => {
-                document.getElementById("new-box-name").value = attrs.name;
-                let __exec = document.getElementById("new-box-exec");
-                __exec.setAttribute("disabled", "");
-                for (let i = 0; i < __exec.options.length; i++) {
-                    if (__exec.options[i].value === attrs.exec) {
-                        __exec.selectedIndex = i;
-                        break;
-                    }
-                }
-                let iconPickerItems = Array.from(document.getElementsByClassName("icon-picker-item"));
-                for (let i = 0; i < iconPickerItems.length; i++) {
-                    if (iconPickerItems[i].getAttribute("name") === attrs.icon) {
-                        iconPickerItems[i].setAttribute("selected", "");
-                        break;
-                    }
-                }
-                // Set the `data-editing` attribute on the create button
-                document.getElementById("new-box-create-btn").setAttribute("data-editing", context);
-                // Show the form
-                showForm();
             });
+            document.getElementById("new-box-name").value = attrs.name;
+            let __exec = document.getElementById("new-box-exec");
+            __exec.setAttribute("disabled", "");
+            for (let i = 0; i < __exec.options.length; i++) {
+                if (__exec.options[i].value === attrs.exec) {
+                    __exec.selectedIndex = i;
+                    break;
+                }
+            }
+            let iconPickerItems = Array.from(document.getElementsByClassName("icon-picker-item"));
+            for (let i = 0; i < iconPickerItems.length; i++) {
+                if (iconPickerItems[i].getAttribute("name") === attrs.icon) {
+                    iconPickerItems[i].setAttribute("selected", "");
+                    break;
+                }
+            }
+            // Set the `data-editing` attribute on the create button
+            document.getElementById("new-box-create-btn").setAttribute("data-editing", context);
+            // Show the form
+            showForm();
+        });
+        let __delete = document.querySelector(".context-menu__item[data-action=delete]");
+        __delete.addEventListener("click", async e => {
+            let context = contextMenu.getAttribute("data-context");
+            let name = document.getElementById(context).querySelector(".box-title").innerText;
+            if (window.confirm("Permanently delete box '" + name + "'?")) {
+                await browser.runtime.sendMessage({
+                    type: "box:del",
+                    args: [context]
+                });
+                await initializeList();
+            }
         });
     }
 }
