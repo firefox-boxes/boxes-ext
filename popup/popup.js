@@ -36,6 +36,9 @@ function setupContextMenu() {
                     break;
                 }
             }
+            document.getElementById("new-box-is-default").checked = ((await browser.runtime.sendMessage({
+                type: "default:get"
+            })) === context);
             // Set the `data-editing` attribute on the create button
             document.getElementById("new-box-create-btn").setAttribute("data-editing", context);
             // Show the form
@@ -67,6 +70,7 @@ function setupForm() {
             document.getElementById("add-btn").style.display = "";
             document.getElementById("add-form").style.display = "none";
             document.getElementById("new-box-name").value = "";
+            document.getElementById("new-box-is-default").checked = false;
             document.getElementById("new-box-exec").selectedIndex = 0;
             document.getElementById("new-box-exec").removeAttribute("disabled");
             let last = iconPicker.querySelector(".icon-picker-item[selected]");
@@ -204,17 +208,28 @@ async function createNewBox() {
     }
     let icon = __selected_icon.getAttribute("name");
 
+    let id;
+
     let __create_button = document.getElementById("new-box-create-btn");
     if (__create_button.hasAttribute("data-editing")) {
+        id = __create_button.getAttribute("data-editing");
         await browser.runtime.sendMessage({
             type: "box:attrs set",
-            args: [__create_button.getAttribute("data-editing"), icon, name, exec]
+            args: [id, icon, name, exec]
         });
         __create_button.removeAttribute("data-editing");
     } else {
-        await browser.runtime.sendMessage({
+        id = await browser.runtime.sendMessage({
             type: "box:new",
             args: [icon, name, exec]
+        });
+    }
+
+    let __is_default = document.getElementById("new-box-is-default");
+    if (__is_default.checked) {
+        await browser.runtime.sendMessage({
+            type: "default:set",
+            args: [id]
         });
     }
 
