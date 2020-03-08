@@ -1,60 +1,66 @@
 //// Setup
 
+let formIsSetup = false;
+
 function setupForm() {
-    function resetForm() {
-        document.getElementById("add-btn").style.display = "";
-        document.getElementById("add-form").style.display = "none";
-        document.getElementById("new-box-name").value = "";
-        document.getElementById("new-box-exec").selectedIndex = 0;
-    }
-
-    document.getElementById("add-btn").addEventListener("click", e => {
-        document.getElementById("add-btn").style.display = "none";
-        document.getElementById("add-form").style.display = "";
-    });
-
-    document.getElementById("new-box-cancel-btn").addEventListener("click", resetForm);
-
-    browser.runtime.sendMessage({
-        type: "i:ls"
-    }).then(installations => {
-        let optionsContainer = document.getElementById("new-box-exec");
-        removeFittingElements(optionsContainer, "option:not(.freeze)");
-        for (let installation of installations) {
-            let o = document.createElement("option");
-            o.value = installation;
-            o.innerText = installation;
-            optionsContainer.appendChild(o);
+    if (!formIsSetup) {
+        function resetForm() {
+            document.getElementById("add-btn").style.display = "";
+            document.getElementById("add-form").style.display = "none";
+            document.getElementById("new-box-name").value = "";
+            document.getElementById("new-box-exec").selectedIndex = 0;
         }
-    });
-
-    const ICONS = ["backpack.svg", "beach.svg", "cap.svg", "crescent-moon.svg", "work.svg"];
-    let iconPicker = document.getElementById("icon-picker");
-    removeFittingElements(iconPicker, "img");
-    for (let icon of ICONS) {
-        let iconItem = document.createElement("img");
-        iconItem.classList.add("icon-picker-item");
-        iconItem.src = "./icons/" + icon;
-        iconItem.setAttribute("name", icon);
-        iconItem.addEventListener("click", e => {
-            if (!iconItem.hasAttribute("selected")) {
-                let last = iconPicker.querySelector(".icon-picker-item[selected]");
-                if (last !== null) last.removeAttribute("selected");
-                iconItem.setAttribute("selected", "");
+    
+        document.getElementById("add-btn").addEventListener("click", e => {
+            document.getElementById("add-btn").style.display = "none";
+            document.getElementById("add-form").style.display = "";
+        });
+    
+        document.getElementById("new-box-cancel-btn").addEventListener("click", resetForm);
+    
+        browser.runtime.sendMessage({
+            type: "i:ls"
+        }).then(installations => {
+            let optionsContainer = document.getElementById("new-box-exec");
+            removeFittingElements(optionsContainer, "option:not(.freeze)");
+            for (let installation of installations) {
+                let o = document.createElement("option");
+                o.value = installation;
+                o.innerText = installation;
+                optionsContainer.appendChild(o);
             }
         });
-        iconPicker.appendChild(iconItem);
-    }
-
-    let newBoxCreateBtn = document.getElementById("new-box-create-btn");
-    newBoxCreateBtn.addEventListener("click", async e => {
-        newBoxCreateBtn.setAttribute("disabled", "");
-        if (await createNewBox()) {
-            resetForm();
-            document.getElementById("error-message").style.display = "none";
+    
+        const ICONS = ["backpack.svg", "beach.svg", "cap.svg", "crescent-moon.svg", "work.svg"];
+        let iconPicker = document.getElementById("icon-picker");
+        removeFittingElements(iconPicker, "img");
+        for (let icon of ICONS) {
+            let iconItem = document.createElement("img");
+            iconItem.classList.add("icon-picker-item");
+            iconItem.src = "./icons/" + icon;
+            iconItem.setAttribute("name", icon);
+            iconItem.addEventListener("click", e => {
+                if (!iconItem.hasAttribute("selected")) {
+                    let last = iconPicker.querySelector(".icon-picker-item[selected]");
+                    if (last !== null) last.removeAttribute("selected");
+                    iconItem.setAttribute("selected", "");
+                }
+            });
+            iconPicker.appendChild(iconItem);
         }
-        newBoxCreateBtn.removeAttribute("disabled");
-    });
+    
+        let newBoxCreateBtn = document.getElementById("new-box-create-btn");
+        newBoxCreateBtn.addEventListener("click", async e => {
+            newBoxCreateBtn.setAttribute("disabled", "");
+            if (await createNewBox()) {
+                resetForm();
+                document.getElementById("error-message").style.display = "none";
+            }
+            newBoxCreateBtn.removeAttribute("disabled");
+        });
+
+        formIsSetup = true;
+    }
 }
 
 function populateList(boxes, self) {
