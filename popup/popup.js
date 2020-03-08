@@ -93,7 +93,7 @@ function setupForm() {
             }
         });
     
-        const ICONS = ["backpack.svg", "beach.svg", "cap.svg", "crescent-moon.svg", "work.svg"];
+        const ICONS = ["box.svg", "backpack.svg", "beach.svg", "cap.svg", "crescent-moon.svg", "work.svg"];
         let iconPicker = document.getElementById("icon-picker");
         removeFittingElements(iconPicker, "img");
         for (let icon of ICONS) {
