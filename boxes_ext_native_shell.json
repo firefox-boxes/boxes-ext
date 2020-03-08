@@ -1,7 +1,0 @@
-{
-  "name": "boxes_ext_native_shell",
-  "description": "Firefox boxes backend shell",
-  "path": "/Users/bill/.FirefoxBoxes/bin/boxes-ext-native-shell",
-  "type": "stdio",
-  "allowed_extensions": [ "boxes@whatsyouridea.com" ]
-}
