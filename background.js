@@ -18,8 +18,19 @@ port.onMessage.addListener(res => {
     }
     if (connected && cb !== 0) {
         cb(res.msg);
+        // `getBoxAttrs` depends on this function, and we use it later, so to
+        // avoid an infinite recursion loop, we return out here.
+        return;
     }
     connected = true;
+    // This goes after everything because we don't want to have an infinite loop
+    if (self !== "<nobody>") {
+        getBoxAttrs(self).then(attrs => {
+            browser.browserAction.setIcon({
+                path: "popup/icons/" + attrs.icon
+            });
+        });
+    }
 });
 
 async function getBoxes() {
