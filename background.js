@@ -61,6 +61,27 @@ async function newBox(icon, name, exec) {
     });
 }
 
+async function getBoxAttrs(id) {
+    return new Promise((resolve, reject) => {
+        cb = reply => {
+            let [icon, name, exec] = reply.split("|");
+            resolve({
+                icon, name, exec
+            });
+        };
+        port.postMessage("box:attrs get " + id);
+    });
+}
+
+async function setBoxAttrs(id, icon, name, exec) {
+    return new Promise((resolve, reject) => {
+        cb = reply => {
+            resolve(reply);
+        };
+        port.postMessage("box:attrs set " + [id, icon, name, exec].join("|"));
+    });
+}
+
 browser.runtime.onMessage.addListener(msg => {
     switch (msg.type) {
         case "i:ls":
@@ -69,6 +90,10 @@ browser.runtime.onMessage.addListener(msg => {
             return getBoxes();
         case "box:new":
             return newBox(...msg.args);
+        case "box:attrs get":
+            return getBoxAttrs(...msg.args);
+        case "box:attrs set":
+            return setBoxAttrs(...msg.args);
         case "exec":
             return startBox(...msg.args);
         case "whoami":
