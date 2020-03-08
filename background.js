@@ -102,10 +102,32 @@ async function delBox(id) {
     });
 }
 
+async function getDefault() {
+    return new Promise((resolve, reject) => {
+        cb = reply => {
+            resolve(reply);
+        };
+        port.postMessage("default:get");
+    });
+}
+
+async function setDefault(data) {
+    return new Promise((resolve, reject) => {
+        cb = reply => {
+            resolve(reply);
+        };
+        port.postMessage("default:set " + data);
+    });
+}
+
 browser.runtime.onMessage.addListener(msg => {
     switch (msg.type) {
         case "i:ls":
             return getInstallations();
+        case "default:get":
+            return getDefault();
+        case "default:set":
+            return setDefault(...msg.args);
         case "box:ls":
             return getBoxes();
         case "box:new":
