@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="popup.css">
     <link rel="stylesheet" href="../node_modules/@mozilla-protocol/core/protocol/css/protocol.min.css">
     <script src="../node_modules/@mozilla-protocol/core/protocol/js/protocol-base.min.js"></script>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <ul id="boxes">
@@ -45,5 +45,17 @@
         </li>
     </ul>
     <script src="./popup.js"></script>
+
+    <!-- Context Menu -->
+    <nav id="context-menu" class="context-menu">
+        <ul class="context-menu__items">
+            <li data-action="edit" class="context-menu__item">
+                Edit
+            </li>
+            <li data-action="delete" class="context-menu__item">
+                Delete
+            </li>
+        </ul>
+    </nav>
 </body>
 </html>

@@ -1,19 +1,70 @@
 //// Setup
 
-let formIsSetup = false;
+let everythingIsSetup = false;
+
+function resetContextMenu() {
+    document.getElementById("context-menu").classList.remove("context-menu--active");
+    document.getElementById("context-menu").removeAttribute("data-context");
+}
+
+function setupContextMenu() {
+    if (!everythingIsSetup) {
+        document.body.addEventListener("click", e => {
+            resetContextMenu();
+        });
+        let contextMenu = document.getElementById("context-menu");
+        let __edit = document.querySelector(".context-menu__item[data-action=edit]");
+        __edit.addEventListener("click", e => {
+            let context = contextMenu.getAttribute("data-context");
+            browser.runtime.sendMessage({
+                type: "box:attrs get",
+                args: [context]
+            }).then(attrs => {
+                document.getElementById("new-box-name").value = attrs.name;
+                let __exec = document.getElementById("new-box-exec");
+                __exec.setAttribute("disabled", "");
+                for (let i = 0; i < __exec.options.length; i++) {
+                    if (__exec.options[i].value === attrs.exec) {
+                        __exec.selectedIndex = i;
+                        break;
+                    }
+                }
+                let iconPickerItems = Array.from(document.getElementsByClassName("icon-picker-item"));
+                for (let i = 0; i < iconPickerItems.length; i++) {
+                    if (iconPickerItems[i].getAttribute("name") === attrs.icon) {
+                        iconPickerItems[i].setAttribute("selected", "");
+                        break;
+                    }
+                }
+                // Set the `data-editing` attribute on the create button
+                document.getElementById("new-box-create-btn").setAttribute("data-editing", context);
+                // Show the form
+                showForm();
+            });
+        });
+    }
+}
+
+function showForm() {
+    document.getElementById("add-btn").style.display = "none";
+    document.getElementById("add-form").style.display = "";
+}
 
 function setupForm() {
-    if (!formIsSetup) {
+    if (!everythingIsSetup) {
         function resetForm() {
             document.getElementById("add-btn").style.display = "";
             document.getElementById("add-form").style.display = "none";
             document.getElementById("new-box-name").value = "";
             document.getElementById("new-box-exec").selectedIndex = 0;
+            document.getElementById("new-box-exec").removeAttribute("disabled");
+            let last = iconPicker.querySelector(".icon-picker-item[selected]");
+            if (last !== null) last.removeAttribute("selected");
+            document.getElementById("new-box-create-btn").removeAttribute("data-editing")
         }
     
         document.getElementById("add-btn").addEventListener("click", e => {
-            document.getElementById("add-btn").style.display = "none";
-            document.getElementById("add-form").style.display = "";
+            showForm();
         });
     
         document.getElementById("new-box-cancel-btn").addEventListener("click", resetForm);
@@ -58,8 +109,6 @@ function setupForm() {
             }
             newBoxCreateBtn.removeAttribute("disabled");
         });
-
-        formIsSetup = true;
     }
 }
 
@@ -83,6 +132,15 @@ function genNode(box, self) {
     clone.addEventListener("click", e => {
         exec(clone.id);
     });
+    clone.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        let contextMenu = document.getElementById("context-menu");
+        contextMenu.setAttribute("data-context", clone.id);
+        contextMenu.style.left = e.pageX + "px";
+        contextMenu.style.top = e.pageY + "px";
+        contextMenu.classList.add("context-menu--active");
+    });
     return clone
 }
 
@@ -100,7 +158,9 @@ async function initializeList() {
     let boxes = await browser.runtime.sendMessage({ type: "box:ls" });
     let self = await browser.runtime.sendMessage({ type: "whoami" });
     populateList(boxes, self);
+    setupContextMenu();
     setupForm();
+    everythingIsSetup = true;
 }
 
 initializeList(); //// START
@@ -133,10 +193,19 @@ async function createNewBox() {
     }
     let icon = __selected_icon.getAttribute("name");
 
-    await browser.runtime.sendMessage({
-        type: "box:new",
-        args: [icon, name, exec]
-    });
+    let __create_button = document.getElementById("new-box-create-btn");
+    if (__create_button.hasAttribute("data-editing")) {
+        await browser.runtime.sendMessage({
+            type: "box:attrs set",
+            args: [__create_button.getAttribute("data-editing"), icon, name, exec]
+        });
+        __create_button.removeAttribute("data-editing");
+    } else {
+        await browser.runtime.sendMessage({
+            type: "box:new",
+            args: [icon, name, exec]
+        });
+    }
 
     await initializeList();
     
